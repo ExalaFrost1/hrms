@@ -270,6 +270,7 @@ class EmployeeResource extends Resource
                         Forms\Components\Tabs\Tab::make('Performance Reviews')
                             ->schema([
                               Forms\Components\Repeater::make('performance_reviews')
+                                  ->relationship('performanceReviews')
                                 ->label('Performance Reviews')
                                 ->schema([
                                     Forms\Components\Section::make('Review Information')
