@@ -43,9 +43,9 @@ class EmployeeResource extends Resource
                                                 Forms\Components\TextInput::make('password')
                                                     ->label('Password')
                                                     ->password()
-                                                    ->required(fn ($livewire) => $livewire instanceof Pages\CreateEmployee)
-                                                    ->dehydrated(fn ($state, $record) => filled($state) || is_null($record))
-                                                    ->placeholder(fn ($record) => $record?->password ? '••••••••' : 'Enter password'),
+                                                    ->required(fn($livewire) => $livewire instanceof Pages\CreateEmployee)
+                                                    ->dehydrated(fn($state, $record) => filled($state) || is_null($record))
+                                                    ->placeholder(fn($record) => $record?->password ? '••••••••' : 'Enter password'),
                                                 Forms\Components\TextInput::make('email')
                                                     ->label('Email')
                                                     ->email()
@@ -99,7 +99,7 @@ class EmployeeResource extends Resource
 
                                                             $years = $now->diffInYears($birthDate);
 
-                                                            $ageString = ((int) $birthDate->age) . " Years";
+                                                            $ageString = ((int)$birthDate->age) . " Years";
                                                             $set('age', $ageString);
                                                         }
                                                     }),
@@ -188,10 +188,13 @@ class EmployeeResource extends Resource
                                                 Forms\Components\DatePicker::make('joining_date')
                                                     ->label('Joining Date')
                                                     ->required()
+                                                    ->format('Y-m-d')
+                                                    ->native(false)
                                                     ->maxDate(now()),
                                                 Forms\Components\DatePicker::make('probation_end_date')
                                                     ->label('Probation End Date')
-                                                    ->after('joining_date')->format('Y/m/d'),
+                                                    ->native(false)
+                                                    ->after('joining_date')->format('Y-m-d'),
                                                 Forms\Components\Select::make('employment_type')
                                                     ->label('Employment Type')
                                                     ->options([
@@ -270,44 +273,118 @@ class EmployeeResource extends Resource
                                     ->schema([
                                         Forms\Components\Repeater::make('compensationHistory')
                                             ->label('Compensation History')
-                                            ->relationship()
+                                            ->relationship('compensationHistory', function ($query) {
+                                                return $query->orderBy('created_at', 'desc'); // Order by newest first
+                                            })
                                             ->schema([
                                                 Forms\Components\Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\DatePicker::make('effective_date')
                                                             ->label('Effective Date')
+                                                            ->native(false)
                                                             ->required(),
                                                         Forms\Components\Select::make('action_type')
                                                             ->label('Action Type')
                                                             ->options([
-                                                                'salary_increase' => 'Salary Increase',
+                                                                'increment' => 'Salary Increase',
                                                                 'promotion' => 'Promotion',
                                                                 'bonus' => 'Bonus',
                                                                 'adjustment' => 'Adjustment',
                                                             ])
+                                                            ->required()
+                                                            ->live(), // Make it reactive to update the value field label
+                                                        Forms\Components\TextInput::make('value')
+                                                            ->label(function (callable $get) {
+                                                                $actionType = $get('action_type');
+                                                                return match($actionType) {
+                                                                    'increment' => 'New Salary',
+                                                                    'promotion' => 'Promotion',
+                                                                    'bonus' => 'Bonus Amount',
+                                                                    'adjustment' => 'Adjustment Amount',
+                                                                    default => 'Value'
+                                                                };
+                                                            })
+                                                            ->numeric()
+                                                            ->prefix('PKR')
+                                                            ->step(function (callable $get) {
+                                                                $actionType = $get('action_type');
+                                                                return match($actionType) {
+                                                                    'bonus' => 100,
+                                                                    default => 0.01
+                                                                };
+                                                            })
                                                             ->required(),
-                                                        Forms\Components\TextInput::make('new_salary')
-                                                            ->label('New Salary')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->step(0.01),
                                                     ]),
-                                                Forms\Components\Grid::make(2)
+                                                Forms\Components\Grid::make(1)
                                                     ->schema([
-                                                        Forms\Components\TextInput::make('bonus_amount')
-                                                            ->label('Bonus Amount')
-                                                            ->numeric()
-                                                            ->prefix('PKR')
-                                                            ->step(100),
                                                         Forms\Components\Textarea::make('remarks')
                                                             ->label('Remarks')
                                                             ->rows(2),
                                                     ]),
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => $state['action_type'] ?? null)
+                                            ->collapsed() // This makes items collapsed by default
                                             ->addActionLabel('Add Compensation Record')
-                                            ->defaultItems(0),
+                                            ->itemLabel(fn(array $state): ?string => $state['action_type'] ?? null)
+                                            ->defaultItems(0)
+                                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                                                // Save the value to the appropriate field based on action_type
+                                                if (isset($data['value']) && isset($data['action_type'])) {
+                                                    switch ($data['action_type']) {
+                                                        case 'salary_increase':
+                                                        case 'promotion':
+                                                            $data['new_salary'] = $data['value'];
+                                                            break;
+                                                        case 'bonus':
+                                                            $data['bonus_amount'] = $data['value'];
+                                                            break;
+                                                        case 'adjustment':
+                                                            $data['adjustment_amount'] = $data['value'];
+                                                            break;
+                                                    }
+                                                    // Remove the temporary value field
+                                                    unset($data['value']);
+                                                }
+                                                return $data;
+                                            })
+                                            ->mutateRelationshipDataBeforeSaveUsing(function (array $data): array {
+                                                // Save the value to the appropriate field based on action_type for updates
+                                                if (isset($data['value']) && isset($data['action_type'])) {
+                                                    switch ($data['action_type']) {
+                                                        case 'salary_increase':
+                                                        case 'promotion':
+                                                            $data['new_salary'] = $data['value'];
+                                                            break;
+                                                        case 'bonus':
+                                                            $data['bonus_amount'] = $data['value'];
+                                                            break;
+                                                        case 'adjustment':
+                                                            $data['adjustment_amount'] = $data['value'];
+                                                            break;
+                                                    }
+                                                    // Remove the temporary value field
+                                                    unset($data['value']);
+                                                }
+                                                return $data;
+                                            })
+                                            ->mutateRelationshipDataBeforeFillUsing(function (array $data): array {
+                                                // When loading existing records, populate the value field from the appropriate field
+                                                if (isset($data['action_type'])) {
+                                                    switch ($data['action_type']) {
+                                                        case 'salary_increase':
+                                                        case 'promotion':
+                                                            $data['value'] = $data['new_salary'] ?? null;
+                                                            break;
+                                                        case 'bonus':
+                                                            $data['value'] = $data['bonus_amount'] ?? null;
+                                                            break;
+                                                        case 'adjustment':
+                                                            $data['value'] = $data['adjustment_amount'] ?? null;
+                                                            break;
+                                                    }
+                                                }
+                                                return $data;
+                                            }),
                                     ]),
                             ]),
 //TODO Fix this
@@ -357,7 +434,7 @@ class EmployeeResource extends Resource
                                                     ]),
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => 'Year ' . ($state['year'] ?? ''))
+                                            ->itemLabel(fn(array $state): ?string => 'Year ' . ($state['year'] ?? ''))
                                             ->addActionLabel('Add Year Record')
                                             ->defaultItems(1),
                                     ]),
@@ -399,7 +476,7 @@ class EmployeeResource extends Resource
                                                     ->default(false),
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => 'Year ' . ($state['year'] ?? ''))
+                                            ->itemLabel(fn(array $state): ?string => 'Year ' . ($state['year'] ?? ''))
                                             ->addActionLabel('Add Benefits Record')
                                             ->defaultItems(1),
                                     ]),
@@ -454,7 +531,7 @@ class EmployeeResource extends Resource
                                                     ]),
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => ($state['asset_type'] ?? '') . ' - ' . ($state['asset_name'] ?? ''))
+                                            ->itemLabel(fn(array $state): ?string => ($state['asset_type'] ?? '') . ' - ' . ($state['asset_name'] ?? ''))
                                             ->addActionLabel('Add Asset')
                                             ->defaultItems(0),
                                     ]),
@@ -499,7 +576,7 @@ class EmployeeResource extends Resource
                                                     ]),
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => $state['provider_name'] ?? 'Insurance Policy')
+                                            ->itemLabel(fn(array $state): ?string => $state['provider_name'] ?? 'Insurance Policy')
                                             ->addActionLabel('Add Insurance Policy')
                                             ->defaultItems(0),
                                     ]),
@@ -559,7 +636,7 @@ class EmployeeResource extends Resource
                                                     ->maxSize(5120), // 5MB
                                             ])
                                             ->collapsible()
-                                            ->itemLabel(fn (array $state): ?string => ($state['document_type'] ?? '') . ' - ' . ($state['document_name'] ?? ''))
+                                            ->itemLabel(fn(array $state): ?string => ($state['document_type'] ?? '') . ' - ' . ($state['document_name'] ?? ''))
                                             ->addActionLabel('Add Document')
                                             ->defaultItems(0),
                                     ]),

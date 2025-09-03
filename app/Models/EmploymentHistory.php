@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class EmploymentHistory extends Model
 {
@@ -31,8 +32,8 @@ protected $table = 'employment_history';
         'current_salary' => 'decimal:2',
     ];
 
-    public function employee(): BelongsTo
+    public function employee(): HasOne
     {
-        return $this->belongsTo(Employee::class);
+        return $this->hasOne(Employee::class);
     }
 }

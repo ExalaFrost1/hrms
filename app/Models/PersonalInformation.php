@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PersonalInformation extends Model
 {
@@ -32,9 +33,9 @@ class PersonalInformation extends Model
         'date_of_birth' => 'date',
     ];
 
-    public function employee(): BelongsTo
+    public function employee(): HasOne
     {
-        return $this->belongsTo(Employee::class);
+        return $this->hasOne(Employee::class);
     }
 
     // Auto-calculate age when date_of_birth is set
