@@ -267,6 +267,136 @@ class EmployeeResource extends Resource
                                     ]),
                             ]),
 
+                        Forms\Components\Tabs\Tab::make('Performance Reviews')
+                            ->schema([
+                                Forms\Components\Section::make('Review Information')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Forms\Components\Select::make('employee_id')
+                                            ->label('Employee')
+                                            ->relationship('employee', 'full_name')
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->employee_id} - {$record->full_name}"),
+                                        Forms\Components\TextInput::make('review_period')
+                                            ->required()
+                                            ->placeholder('e.g., Q1 2024, Annual 2024')
+                                            ->helperText('Specify the review period (quarterly, annual, etc.)'),
+                                        Forms\Components\DatePicker::make('review_date')
+                                            ->required()
+                                            ->default(now())
+                                            ->maxDate(now()),
+                                        Forms\Components\TextInput::make('reviewed_by')
+                                            ->required()
+                                            ->default('Direct Manager')
+                                            ->placeholder('Name of the reviewer'),
+                                        Forms\Components\Select::make('status')
+                                            ->options([
+                                                'draft' => 'Draft',
+                                                'submitted' => 'Submitted',
+                                                'approved' => 'Approved',
+                                            ])
+                                            ->default('draft')
+                                            ->required(),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Performance Metrics')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('goal_completion_rate')
+                                            ->label('Goal Completion Rate (%)')
+                                            ->numeric()
+                                            ->suffix('%')
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->required()
+                                            ->helperText('Percentage of goals achieved during this period'),
+                                        Forms\Components\Select::make('overall_rating')
+                                            ->label('Overall Rating')
+                                            ->options([
+                                                '5.0' => '5.0 - Outstanding',
+                                                '4.5' => '4.5 - Exceeds Expectations',
+                                                '4.0' => '4.0 - Meets Expectations+',
+                                                '3.5' => '3.5 - Meets Expectations',
+                                                '3.0' => '3.0 - Partially Meets',
+                                                '2.5' => '2.5 - Below Expectations',
+                                                '2.0' => '2.0 - Unsatisfactory',
+                                            ])
+                                            ->required()
+                                            ->helperText('Select the overall performance rating'),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Detailed Feedback')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('self_assessment')
+                                            ->label('Employee Self Assessment')
+                                            ->rows(4)
+                                            ->placeholder('Employee self-evaluation of their performance during this period')
+                                            ->helperText('What the employee thinks about their own performance'),
+
+                                        Forms\Components\Textarea::make('manager_feedback')
+                                            ->label('Manager Feedback')
+                                            ->rows(4)
+                                            ->placeholder('Detailed manager evaluation and feedback')
+                                            ->helperText('Manager assessment of employee performance')
+                                            ->required(),
+
+                                        Forms\Components\Textarea::make('peer_feedback')
+                                            ->label('Peer Feedback')
+                                            ->rows(3)
+                                            ->placeholder('Feedback from colleagues and team members')
+                                            ->helperText('Input from peers who work closely with the employee'),
+
+                                        Forms\Components\Textarea::make('areas_of_strength')
+                                            ->label('Areas of Strength')
+                                            ->rows(3)
+                                            ->placeholder('Key strengths demonstrated during this period')
+                                            ->helperText('What the employee does well'),
+
+                                        Forms\Components\Textarea::make('areas_for_improvement')
+                                            ->label('Areas for Improvement')
+                                            ->rows(3)
+                                            ->placeholder('Areas where employee can improve')
+                                            ->helperText('Constructive feedback for development'),
+
+                                        Forms\Components\Textarea::make('development_goals')
+                                            ->label('Development Goals for Next Period')
+                                            ->rows(4)
+                                            ->placeholder('Specific goals and development objectives for the upcoming period')
+                                            ->helperText('What should be focused on in the next review period'),
+                                    ])->columns(1),
+
+                                Forms\Components\Section::make('Additional Information')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Forms\Components\KeyValue::make('key_achievements')
+                                            ->label('Key Achievements')
+                                            ->keyLabel('Achievement')
+                                            ->valueLabel('Details')
+                                            ->addActionLabel('Add Achievement')
+                                            ->helperText('List major accomplishments during this period'),
+
+                                        Forms\Components\TagsInput::make('skills_demonstrated')
+                                            ->label('Skills Demonstrated')
+                                            ->placeholder('Enter skills and press Enter')
+                                            ->helperText('Technical and soft skills shown during this period'),
+
+                                        Forms\Components\FileUpload::make('supporting_documents')
+                                            ->label('Supporting Documents')
+                                            ->multiple()
+                                            ->directory('performance-reviews')
+                                            ->acceptedFileTypes(['application/pdf', 'image/*', 'application/msword'])
+                                            ->helperText('Upload any supporting documents (PDFs, images, etc.)'),
+                                    ])->columns(1)
+                                    ->collapsible()
+                                    ->collapsed(),
+
+                            ]),
+
+
+
                         Forms\Components\Tabs\Tab::make('Compensation History')
                             ->schema([
                                 Forms\Components\Section::make('Compensation Records')
