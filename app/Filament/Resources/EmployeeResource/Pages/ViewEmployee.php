@@ -4,9 +4,15 @@ namespace App\Filament\Resources\EmployeeResource\Pages;
 
 use App\Filament\Resources\EmployeeResource;
 use Filament\Actions;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
+use Filament\Infolists\Components\KeyValueEntry;
+
 
 class ViewEmployee extends ViewRecord
 {
@@ -171,36 +177,115 @@ class ViewEmployee extends ViewRecord
 
                         Components\Tabs\Tab::make('Performance')
                             ->schema([
-                                Components\Section::make('Performance Overview')
+                                RepeatableEntry::make('performance_reviews')
+                                    ->label('Performance Reviews')
+                                    ->relationship('performanceReviews')
                                     ->schema([
-                                        Components\Grid::make(4)
+                                        Section::make('Review Information')
                                             ->schema([
-                                                Components\TextEntry::make('latest_performance_rating')
-                                                    ->label('Latest Rating')
-                                                    ->getStateUsing(function ($record) {
-                                                        return $record->performanceReviews()
-                                                            ->latest('review_date')
-                                                            ->first()?->overall_rating ?? 'N/A';
-                                                    })
-                                                    ->badge()
-                                                    ->color('success'),
-                                                Components\TextEntry::make('goal_completion')
-                                                    ->label('Goal Completion')
-                                                    ->getStateUsing(function ($record) {
-                                                        return $record->performanceReviews()
-                                                            ->latest('review_date')
-                                                            ->first()?->goal_completion_rate . '%' ?? 'N/A';
-                                                    })
-                                                    ->badge()
-                                                    ->color('primary'),
-                                                Components\TextEntry::make('tenure_months')
-                                                    ->label('Tenure (Months)')
-                                                    ->getStateUsing(fn ($record) => $record->getTenureInMonths()),
-                                                Components\TextEntry::make('total_reviews')
-                                                    ->label('Total Reviews')
-                                                    ->getStateUsing(fn ($record) => $record->performanceReviews()->count()),
+                                                Grid::make(2)->schema([
+                                                    TextEntry::make('employee.full_name')
+                                                        ->label('Employee')
+                                                        ->formatStateUsing(fn ($state, $record) =>
+                                                        "{$record->employee?->employee_id} — {$record->employee?->full_name}"
+                                                        )
+                                                        ->default('-'),
+
+                                                    TextEntry::make('review_period')
+                                                        ->label('Review Period')
+                                                        ->default('-'),
+
+                                                    TextEntry::make('review_date')
+                                                        ->label('Review Date')
+                                                        ->date(),
+
+                                                    TextEntry::make('reviewed_by')
+                                                        ->label('Reviewed By')
+                                                        ->default('Direct Manager'),
+
+                                                    TextEntry::make('status')
+                                                        ->label('Status')
+                                                        ->badge()
+                                                        ->colors([
+                                                            'warning' => 'draft',
+                                                            'info'    => 'submitted',
+                                                            'success' => 'approved',
+                                                        ]),
+                                                ]),
                                             ]),
-                                    ]),
+
+                                        Section::make('Performance Metrics')
+                                            ->schema([
+                                                Grid::make(2)->schema([
+                                                    TextEntry::make('goal_completion_rate')
+                                                        ->label('Goal Completion Rate')
+                                                        ->formatStateUsing(fn ($val) =>
+                                                        is_numeric($val) ? "{$val}%" : ($val ?? '-')
+                                                        ),
+
+                                                    TextEntry::make('overall_rating')
+                                                        ->label('Overall Rating')
+                                                        ->badge()
+                                                        ->color(fn ($state) => match (true) {
+                                                            (float)$state >= 4.5 => 'success',
+                                                            (float)$state >= 4.0 => 'info',
+                                                            (float)$state >= 3.5 => 'gray',
+                                                            (float)$state >= 3.0 => 'warning',
+                                                            default               => 'danger',
+                                                        }),
+                                                ]),
+                                            ]),
+
+                                        Section::make('Detailed Feedback')
+                                            ->schema([
+                                                TextEntry::make('self_assessment')->label('Employee Self Assessment')->markdown()->hidden(fn ($s) => blank($s)),
+                                                TextEntry::make('manager_feedback')->label('Manager Feedback')->markdown(),
+                                                TextEntry::make('peer_feedback')->label('Peer Feedback')->markdown()->hidden(fn ($s) => blank($s)),
+                                                TextEntry::make('areas_of_strength')->label('Areas of Strength')->markdown()->hidden(fn ($s) => blank($s)),
+                                                TextEntry::make('areas_for_improvement')->label('Areas for Improvement')->markdown()->hidden(fn ($s) => blank($s)),
+                                                TextEntry::make('development_goals')->label('Development Goals for Next Period')->markdown()->hidden(fn ($s) => blank($s)),
+                                            ]),
+
+                                        Section::make('Additional Information')
+                                            ->collapsed()
+                                            ->collapsible()
+                                            ->schema([
+                                                KeyValueEntry::make('key_achievements')
+                                                    ->label('Key Achievements')
+                                                    ->keyLabel('Achievement')
+                                                    ->valueLabel('Details')
+                                                    ->hidden(fn ($s) => empty($s)),
+
+                                                TextEntry::make('skills_demonstrated')
+                                                    ->label('Skills Demonstrated')
+                                                    ->badge()
+                                                    ->hidden(fn ($s) => empty($s)),
+
+                                                // Show uploaded files as links
+                                                RepeatableEntry::make('supporting_documents')
+                                                    ->label('Supporting Documents')
+                                                    ->hidden(fn ($s) => empty($s))
+                                                    ->schema([
+                                                        TextEntry::make('path')
+                                                            ->label('File')
+                                                            ->formatStateUsing(fn ($state) => is_array($state) ? ($state['path'] ?? ($state['name'] ?? '')) : $state)
+                                                            ->url(fn ($state) => Storage::url(is_array($state) ? ($state['path'] ?? ($state['name'] ?? null)) : $state), shouldOpenInNewTab: true)
+                                                            ->icon('heroicon-m-paper-clip'),
+                                                    ])
+                                                    ->formatStateUsing(function ($state) {
+                                                        if (blank($state)) return [];
+                                                        if (is_array($state) && array_is_list($state)) {
+                                                            return array_map(fn ($item) => ['path' => $item], $state);
+                                                        }
+                                                        if (is_string($state)) return [['path' => $state]];
+                                                        return [];
+                                                    }),
+                                            ]),
+                                    ])
+                                    ->emptyStateHeading('No performance reviews yet')
+                                    ->emptyStateDescription('Once reviews are added, they will appear here.')
+                                    ->emptyStateIcon('heroicon-o-clipboard-document-check'),
+                            ]),
                             ]),
 
                         Components\Tabs\Tab::make('Leave & Attendance')
@@ -368,7 +453,6 @@ class ViewEmployee extends ViewRecord
                                             ->columns(3),
                                     ]),
                             ]),
-                    ]),
             ])->columns(1);
     }
 }
