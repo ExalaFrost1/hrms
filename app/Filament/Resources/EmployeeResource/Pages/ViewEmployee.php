@@ -150,58 +150,180 @@ class ViewEmployee extends ViewRecord
                                         Components\RepeatableEntry::make('compensationHistory')
                                             ->hiddenLabel()
                                             ->schema([
-                                                Components\TextEntry::make('effective_date')
-                                                    ->label('Date')
-                                                    ->date(),
-                                                Components\TextEntry::make('action_type')
-                                                    ->label('Action')
-                                                    ->badge(),
-                                                Components\TextEntry::make('new_salary')
-                                                    ->label('New Salary')
-                                                    ->money('USD'),
-                                                Components\TextEntry::make('bonus_amount')
-                                                    ->label('Bonus')
-                                                    ->money('USD'),
-                                                Components\TextEntry::make('remarks')
-                                                    ->label('Remarks'),
+                                                Components\Grid::make(3)
+                                                    ->schema([
+                                                        Components\TextEntry::make('effective_date')
+                                                            ->label('Effective Date')
+                                                            ->date('M j, Y'),
+                                                        Components\TextEntry::make('action_type')
+                                                            ->label('Action Type')
+                                                            ->badge()
+                                                            ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                                                            ->color(fn (string $state): string => match ($state) {
+                                                                'joining' => 'success',
+                                                                'increment' => 'info',
+                                                                'promotion' => 'warning',
+                                                                'bonus' => 'primary',
+                                                                'adjustment' => 'gray',
+                                                                default => 'gray',
+                                                            }),
+                                                        Components\TextEntry::make('approved_by')
+                                                            ->label('Approved By')
+                                                            ->default('Not specified'),
+                                                    ]),
+                                                Components\Grid::make(4)
+                                                    ->schema([
+                                                        Components\TextEntry::make('new_salary')
+                                                            ->label('New Salary')
+                                                            ->money('USD')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('previous_salary')
+                                                            ->label('Previous Salary')
+                                                            ->money('USD')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('bonus_amount')
+                                                            ->label('Bonus Amount')
+                                                            ->money('USD')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('incentive_amount')
+                                                            ->label('Incentive Amount')
+                                                            ->money('USD')
+                                                            ->default('Not specified'),
+                                                    ]),
+                                                Components\Grid::make(1)
+                                                    ->schema([
+                                                        Components\TextEntry::make('remarks')
+                                                            ->label('Remarks')
+                                                            ->default('No remarks')
+                                                            ->columnSpanFull(),
+                                                    ]),
                                             ])
-                                            ->columns(3),
+                                            ->columns(1),
                                     ]),
                             ]),
 
                         Components\Tabs\Tab::make('Performance')
                             ->schema([
-                                Components\Section::make('Performance Overview')
+                                Components\Section::make('Basic Information')
+                                    ->relationship('performanceReviews')
                                     ->schema([
-                                        Components\Grid::make(4)
+                                        Components\Split::make([
+                                            Components\Grid::make(2)
+                                                ->schema([
+                                                    Components\Group::make([
+                                                        Components\TextEntry::make('employee.employee_id')
+                                                            ->label('Employee ID'),
+                                                        Components\TextEntry::make('employee.full_name')
+                                                            ->label('Employee Name'),
+                                                        Components\TextEntry::make('employee.email')
+                                                            ->label('Employee Email'),
+                                                        Components\TextEntry::make('employee.employmentHistory.current_department')
+                                                            ->label('Department'),
+                                                    ]),
+                                                    Components\Group::make([
+                                                        Components\TextEntry::make('review_period')
+                                                            ->label('Review Period')
+                                                            ->badge()
+                                                            ->color('primary'),
+                                                        Components\TextEntry::make('review_date')
+                                                            ->label('Review Date')
+                                                            ->date(),
+                                                        Components\TextEntry::make('reviewed_by')
+                                                            ->label('Reviewed By'),
+                                                        Components\TextEntry::make('status')
+                                                            ->label('Status')
+                                                            ->badge()
+                                                            ->color(fn(string $state): string => match ($state) {
+                                                                'draft' => 'gray',
+                                                                'submitted' => 'warning',
+                                                                'approved' => 'success',
+                                                                default => 'gray',
+                                                            }),
+                                                    ]),
+                                                ]),
+                                        ]),
+                                    ]),
+                                Components\Section::make('Manager Feedback')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('manager_feedback')
+                                            ->label('Manager Feedback')
+                                            ->prose()
+                                            ->placeholder('No manager feedback provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Peer Feedback')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('peer_feedback')
+                                            ->label('Peer Feedback')
+                                            ->prose()
+                                            ->placeholder('No peer feedback provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Self Assessment')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('self_assessment')
+                                            ->label('Self Assessment')
+                                            ->prose()
+                                            ->placeholder('No self assessment provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Areas of Strength')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('areas_of_strength')
+                                            ->label('Strengths')
+                                            ->prose()
+                                            ->placeholder('No strengths documented'),
+                                    ]),
+                                Components\Section::make('Areas for Improvement')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('areas_for_improvement')
+                                            ->label('Improvement Areas')
+                                            ->prose()
+                                            ->placeholder('No improvement areas documented'),
+                                    ]),
+                                Components\Section::make('Development Goals')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('development_goals')
+                                            ->label('Development Goals')
+                                            ->prose()
+                                            ->placeholder('No development goals set'),
+                                    ]),
+                                Components\Section::make('Performance Metrics')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\Grid::make(2)
                                             ->schema([
-                                                Components\TextEntry::make('latest_performance_rating')
-                                                    ->label('Latest Rating')
-                                                    ->getStateUsing(function ($record) {
-                                                        return $record->performanceReviews()
-                                                            ->latest('review_date')
-                                                            ->first()?->overall_rating ?? 'N/A';
-                                                    })
-                                                    ->badge()
-                                                    ->color('success'),
-                                                Components\TextEntry::make('goal_completion')
-                                                    ->label('Goal Completion')
-                                                    ->getStateUsing(function ($record) {
-                                                        return $record->performanceReviews()
-                                                            ->latest('review_date')
-                                                            ->first()?->goal_completion_rate . '%' ?? 'N/A';
-                                                    })
-                                                    ->badge()
-                                                    ->color('primary'),
-                                                Components\TextEntry::make('tenure_months')
-                                                    ->label('Tenure (Months)')
-                                                    ->getStateUsing(fn ($record) => $record->getTenureInMonths()),
-                                                Components\TextEntry::make('total_reviews')
-                                                    ->label('Total Reviews')
-                                                    ->getStateUsing(fn ($record) => $record->performanceReviews()->count()),
+                                                Components\TextEntry::make('goal_completion_rate')
+                                                    ->label('Goal Completion Rate')
+                                                    ->suffix('%')
+                                                    ->numeric()
+                                                    ->color(fn($state): string => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
+                                                Components\TextEntry::make('overall_rating')
+                                                    ->label('Overall Rating')
+                                                    ->suffix('/5.0')
+                                                    ->numeric()
+                                                    ->color(fn($state): string => $state >= 4.0 ? 'success' : ($state >= 3.0 ? 'warning' : 'danger')),
+                                            ]),
+                                    ])->columns(1),
+                                Components\Section::make('Record Information')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\Grid::make(2)
+                                            ->schema([
+                                                Components\TextEntry::make('created_at')
+                                                    ->label('Created At')
+                                                    ->dateTime(),
+                                                Components\TextEntry::make('updated_at')
+                                                    ->label('Last Updated')
+                                                    ->dateTime()
+                                                    ->since(),
                                             ]),
                                     ]),
                             ]),
+
 
                         Components\Tabs\Tab::make('Leave & Attendance')
                             ->schema([
@@ -330,9 +452,9 @@ class ViewEmployee extends ViewRecord
                                                     ->money('USD'),
                                                 Components\TextEntry::make('annual_checkup_used')
                                                     ->label('Annual Checkup')
-                                                    ->formatStateUsing(fn ($state) => $state ? 'Used' : 'Available')
+                                                    ->formatStateUsing(fn($state) => $state ? 'Used' : 'Available')
                                                     ->badge()
-                                                    ->color(fn ($state) => $state ? 'success' : 'warning'),
+                                                    ->color(fn($state) => $state ? 'success' : 'warning'),
                                             ])
                                             ->columns(3),
                                     ]),
@@ -356,7 +478,7 @@ class ViewEmployee extends ViewRecord
                                                 Components\TextEntry::make('status')
                                                     ->label('Status')
                                                     ->badge()
-                                                    ->color(fn ($state) => match ($state) {
+                                                    ->color(fn($state) => match ($state) {
                                                         'verified' => 'success',
                                                         'pending' => 'warning',
                                                         'rejected' => 'danger',

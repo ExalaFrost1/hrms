@@ -443,8 +443,7 @@ class EmployeeResource extends Resource
                                                                     'bonus' => 100,
                                                                     default => 0.01
                                                                 };
-                                                            })
-                                                            ->required(),
+                                                            }),
                                                     ]),
                                                 Forms\Components\Grid::make(1)
                                                     ->schema([
