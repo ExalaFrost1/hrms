@@ -14,19 +14,19 @@ return new class extends Migration
         Schema::create('employment_history', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->date('joining_date');
-            $table->date('probation_end_date');
-            $table->string('initial_department');
-            $table->string('initial_role');
-            $table->string('initial_grade');
-            $table->string('reporting_manager');
-            $table->string('current_department');
-            $table->string('current_role');
-            $table->string('current_grade');
-            $table->string('current_manager');
-            $table->decimal('initial_salary', 12, 2);
-            $table->decimal('current_salary', 12, 2);
-            $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'intern']);
+            $table->date('joining_date')->nullable();
+            $table->date('probation_end_date')->nullable();
+            $table->string('initial_department')->nullable();
+            $table->string('initial_role')->nullable();
+            $table->string('initial_grade')->nullable();
+            $table->string('reporting_manager')->nullable();
+            $table->string('current_department')->nullable();
+            $table->string('current_role')->nullable();
+            $table->string('current_grade')->nullable();
+            $table->string('current_manager')->nullable();
+            $table->decimal('initial_salary', 12, 2)->nullable();
+            $table->decimal('current_salary', 12, 2)->nullable();
+            $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'intern'])->nullable();
             $table->timestamps();
         });
     }

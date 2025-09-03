@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('benefits_allowances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->decimal('internet_allowance', 10, 2)->default(0);
-            $table->decimal('medical_allowance', 10, 2)->default(0);
-            $table->decimal('home_office_setup', 10, 2)->default(1000.00);
-            $table->boolean('home_office_setup_claimed')->default(false);
+            $table->foreignId('employee_id')->nullable();
+            $table->decimal('internet_allowance', 10, 2)->default(0)->nullable();
+            $table->decimal('medical_allowance', 10, 2)->default(0)->nullable();
+            $table->decimal('home_office_setup', 10, 2)->default(1000.00)->nullable();
+            $table->boolean('home_office_setup_claimed')->default(false)->nullable();
             $table->date('laptop_issued_date')->nullable();
             $table->string('laptop_model')->nullable();
             $table->string('laptop_serial')->nullable();
-            $table->boolean('birthday_allowance_claimed')->default(false);
+            $table->boolean('birthday_allowance_claimed')->default(false)->nullable();
             $table->year('year')->default(now()->year);
             $table->timestamps();
         });

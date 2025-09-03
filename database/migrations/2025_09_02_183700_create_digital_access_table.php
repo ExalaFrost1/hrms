@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('digital_access', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('platform'); // email, slack, discord, etc.
-            $table->string('username_or_email');
-            $table->date('access_granted_date');
+            $table->foreignId('employee_id')->nullable();
+            $table->string('platform')->nullable(); // email, slack, discord, etc.
+            $table->string('username_or_email')->nullable();
+            $table->date('access_granted_date')->nullable();
             $table->date('access_revoked_date')->nullable();
             $table->json('permissions')->nullable(); // store array of permissions
             $table->enum('status', ['active', 'suspended', 'revoked'])->default('active');

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('compensation_history', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->date('effective_date');
-            $table->enum('action_type', ['joining', 'increment', 'promotion', 'bonus', 'adjustment']);
-            $table->decimal('new_salary', 12, 2);
+            $table->date('effective_date')->nullable();
+            $table->enum('action_type', ['joining', 'increment', 'promotion', 'bonus', 'adjustment'])->nullable();
+            $table->decimal('new_salary', 12, 2)->nullable();
             $table->decimal('previous_salary', 12, 2)->nullable();
             $table->decimal('bonus_amount', 12, 2)->nullable();
             $table->decimal('incentive_amount', 12, 2)->nullable();

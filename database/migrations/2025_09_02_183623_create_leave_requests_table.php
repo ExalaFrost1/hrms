@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->enum('leave_type', ['annual', 'sick', 'casual', 'unpaid', 'maternity', 'paternity', 'bereavement', 'study']);
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->integer('days_requested');
-            $table->text('reason');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('leave_type', ['annual', 'sick', 'casual', 'unpaid', 'maternity', 'paternity', 'bereavement', 'study'])->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->integer('days_requested')->nullable();
+            $table->text('reason')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->nullable();
             $table->string('approved_by')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->date('approved_at')->nullable();

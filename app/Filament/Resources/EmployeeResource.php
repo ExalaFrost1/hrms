@@ -43,7 +43,9 @@ class EmployeeResource extends Resource
                                                 Forms\Components\TextInput::make('password')
                                                     ->label('Password')
                                                     ->password()
-                                                    ->required(),
+                                                    ->required(fn ($livewire) => $livewire instanceof Pages\CreateEmployee)
+                                                    ->dehydrated(fn ($state, $record) => filled($state) || is_null($record))
+                                                    ->placeholder(fn ($record) => $record?->password ? '••••••••' : 'Enter password'),
                                                 Forms\Components\TextInput::make('email')
                                                     ->label('Email')
                                                     ->email()

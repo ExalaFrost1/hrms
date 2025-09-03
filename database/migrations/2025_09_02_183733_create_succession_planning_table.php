@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('succession_planning', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('current_role');
-            $table->string('potential_future_role');
-            $table->enum('readiness_level', ['ready_now', '1_2_years', '2_3_years', 'not_ready']);
+            $table->foreignId('employee_id')->nullable();
+            $table->string('current_role')->nullable();
+            $table->string('potential_future_role')->nullable();
+            $table->enum('readiness_level', ['ready_now', '1_2_years', '2_3_years', 'not_ready'])->nullable();
             $table->text('development_plan')->nullable();
             $table->string('mentor_assigned')->nullable();
             $table->json('required_skills')->nullable();
             $table->json('completed_training')->nullable();
-            $table->date('assessment_date');
-            $table->string('assessed_by');
+            $table->date('assessment_date')->nullable();
+            $table->string('assessed_by')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

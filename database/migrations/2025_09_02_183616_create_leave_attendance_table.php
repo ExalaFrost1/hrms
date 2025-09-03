@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('leave_attendance', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->integer('annual_leave_quota')->default(21);
-            $table->integer('annual_leave_used')->default(0);
-            $table->integer('sick_leave_used')->default(0);
-            $table->integer('casual_leave_used')->default(0);
-            $table->integer('unpaid_leave_used')->default(0);
+            $table->integer('annual_leave_quota')->default(21)->nullable();
+            $table->integer('annual_leave_used')->default(0)->nullable();
+            $table->integer('sick_leave_used')->default(0)->nullable();
+            $table->integer('casual_leave_used')->default(0)->nullable();
+            $table->integer('unpaid_leave_used')->default(0)->nullable();
             $table->decimal('average_login_hours', 5, 2)->nullable();
             $table->decimal('on_time_attendance_rate', 5, 2)->nullable();
-            $table->year('year')->default(now()->year);
+            $table->year('year')->default(now()->year)->nullable();
             $table->timestamps();
         });
     }

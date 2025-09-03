@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('conduct_compliance', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->date('incident_date');
-            $table->enum('type', ['warning', 'show_cause', 'pip', 'disciplinary_action', 'appreciation', 'recognition', 'reward']);
-            $table->string('title');
-            $table->text('description');
+            $table->date('incident_date')->nullable();
+            $table->enum('type', ['warning', 'show_cause', 'pip', 'disciplinary_action', 'appreciation', 'recognition', 'reward'])->nullable();
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
             $table->text('action_taken')->nullable();
             $table->date('resolution_date')->nullable();
-            $table->string('issued_by');
+            $table->string('issued_by')->nullable();
             $table->json('documents')->nullable(); // Store file paths
             $table->enum('severity', ['low', 'medium', 'high', 'critical'])->nullable();
-            $table->enum('status', ['pending', 'in_progress', 'resolved', 'closed'])->default('pending');
+            $table->enum('status', ['pending', 'in_progress', 'resolved', 'closed'])->default('pending')->nullable();
             $table->timestamps();
         });
     }

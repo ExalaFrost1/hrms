@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('learning_development', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('training_name');
-            $table->enum('training_type', ['mandatory', 'technical', 'soft_skills', 'certification', 'conference']);
+            $table->foreignId('employee_id')->nullable();
+            $table->string('training_name')->nullable();
+            $table->enum('training_type', ['mandatory', 'technical', 'soft_skills', 'certification', 'conference'])->nullable();
             $table->text('description')->nullable();
-            $table->date('start_date');
+            $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->enum('status', ['enrolled', 'in_progress', 'completed', 'cancelled']);
+            $table->enum('status', ['enrolled', 'in_progress', 'completed', 'cancelled'])->nullable();
             $table->string('provider')->nullable();
             $table->decimal('cost', 10, 2)->nullable();
             $table->string('certificate_url')->nullable();

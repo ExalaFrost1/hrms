@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('health_insurance', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('provider_name');
+            $table->foreignId('employee_id')->nullable();
+            $table->string('provider_name')->nullable();
             $table->string('policy_number')->unique();
-            $table->json('coverage_details'); // employee, spouse, children, parents
-            $table->date('policy_start_date');
-            $table->date('policy_end_date');
-            $table->decimal('annual_premium', 10, 2);
+            $table->json('coverage_details')->nullable(); // employee, spouse, children, parents
+            $table->date('policy_start_date')->nullable();
+            $table->date('policy_end_date')->nullable();
+            $table->decimal('annual_premium', 10, 2)->nullable();
             $table->boolean('annual_checkup_used')->default(false);
             $table->date('last_checkup_date')->nullable();
             $table->timestamps();

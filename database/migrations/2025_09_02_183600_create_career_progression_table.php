@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('career_progression', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->date('effective_date');
-            $table->enum('progression_type', ['promotion', 'transfer', 'acting_role', 'demotion']);
-            $table->string('from_position');
-            $table->string('to_position');
-            $table->string('from_department');
-            $table->string('to_department');
+            $table->date('effective_date')->nullable();
+            $table->enum('progression_type', ['promotion', 'transfer', 'acting_role', 'demotion'])->nullable();
+            $table->string('from_position')->nullable();
+            $table->string('to_position')->nullable();
+            $table->string('from_department')->nullable();
+            $table->string('to_department')->nullable();
             $table->string('from_grade')->nullable();
             $table->string('to_grade')->nullable();
             $table->text('reason')->nullable();
-            $table->string('approved_by');
+            $table->string('approved_by')->nullable();
             $table->timestamps();
         });
     }

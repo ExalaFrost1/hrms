@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('compliance_documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
+            $table->foreignId('employee_id')->nullable();
             $table->enum('document_type', [
                 'offer_letter',
                 'employment_contract',
@@ -23,10 +23,10 @@ return new class extends Migration
                 'emergency_contact_form',
                 'background_check',
                 'reference_letters'
-            ]);
-            $table->string('document_name');
-            $table->string('file_path');
-            $table->date('submission_date');
+            ])->nullable();
+            $table->string('document_name')->nullable();
+            $table->string('file_path')->nullable();
+            $table->date('submission_date')->nullable();
             $table->date('expiry_date')->nullable();
             $table->enum('status', ['pending', 'submitted', 'verified', 'expired', 'rejected']);
             $table->text('notes')->nullable();

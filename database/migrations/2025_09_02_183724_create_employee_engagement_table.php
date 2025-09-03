@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('employee_engagement', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('activity_type'); // event_participation, recognition, content_contribution
-            $table->string('activity_name');
-            $table->text('description');
-            $table->date('activity_date');
-            $table->enum('participation_level', ['attended', 'actively_participated', 'organized', 'led']);
+            $table->foreignId('employee_id')->nullable();
+            $table->string('activity_type')->nullable(); // event_participation, recognition, content_contribution
+            $table->string('activity_name')->nullable();
+            $table->text('description')->nullable();
+            $table->date('activity_date')->nullable();
+            $table->enum('participation_level', ['attended', 'actively_participated', 'organized', 'led'])->nullable();
             $table->text('recognition_details')->nullable();
             $table->json('documents')->nullable(); // certificates, photos, etc.
             $table->timestamps();
