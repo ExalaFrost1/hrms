@@ -413,6 +413,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('effective_date')
                                                             ->label('Effective Date')
                                                             ->native(false)
+                                                            ->format('Y-m-d')
                                                             ->required(),
                                                         Forms\Components\Select::make('action_type')
                                                             ->label('Action Type')
@@ -443,8 +444,7 @@ class EmployeeResource extends Resource
                                                                     'bonus' => 100,
                                                                     default => 0.01
                                                                 };
-                                                            })
-                                                            ->required(),
+                                                            }),
                                                     ]),
                                                 Forms\Components\Grid::make(1)
                                                     ->schema([
@@ -462,7 +462,8 @@ class EmployeeResource extends Resource
                                                 // Save the value to the appropriate field based on action_type
                                                 if (isset($data['value']) && isset($data['action_type'])) {
                                                     switch ($data['action_type']) {
-                                                        case 'salary_increase':
+                                                        case 'increment':
+                                                            $data['increment'] = $data['value'];
                                                         case 'promotion':
                                                             $data['new_salary'] = $data['value'];
                                                             break;
@@ -482,7 +483,8 @@ class EmployeeResource extends Resource
                                                 // Save the value to the appropriate field based on action_type for updates
                                                 if (isset($data['value']) && isset($data['action_type'])) {
                                                     switch ($data['action_type']) {
-                                                        case 'salary_increase':
+                                                        case 'increment':
+                                                            $data['increment'] = $data['value'];
                                                         case 'promotion':
                                                             $data['new_salary'] = $data['value'];
                                                             break;
@@ -502,7 +504,9 @@ class EmployeeResource extends Resource
                                                 // When loading existing records, populate the value field from the appropriate field
                                                 if (isset($data['action_type'])) {
                                                     switch ($data['action_type']) {
-                                                        case 'salary_increase':
+                                                        case 'increment':
+                                                            $data['value'] = $data['increment'] ?? null;
+                                                            break;
                                                         case 'promotion':
                                                             $data['value'] = $data['new_salary'] ?? null;
                                                             break;

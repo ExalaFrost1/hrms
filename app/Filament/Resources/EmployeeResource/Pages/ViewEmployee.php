@@ -4,15 +4,9 @@ namespace App\Filament\Resources\EmployeeResource\Pages;
 
 use App\Filament\Resources\EmployeeResource;
 use Filament\Actions;
-use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
-use Filament\Infolists\Components\KeyValueEntry;
-
 
 class ViewEmployee extends ViewRecord
 {
@@ -156,137 +150,176 @@ class ViewEmployee extends ViewRecord
                                         Components\RepeatableEntry::make('compensationHistory')
                                             ->hiddenLabel()
                                             ->schema([
-                                                Components\TextEntry::make('effective_date')
-                                                    ->label('Date')
-                                                    ->date(),
-                                                Components\TextEntry::make('action_type')
-                                                    ->label('Action')
-                                                    ->badge(),
-                                                Components\TextEntry::make('new_salary')
-                                                    ->label('New Salary')
-                                                    ->money('USD'),
-                                                Components\TextEntry::make('bonus_amount')
-                                                    ->label('Bonus')
-                                                    ->money('USD'),
-                                                Components\TextEntry::make('remarks')
-                                                    ->label('Remarks'),
+                                                Components\Grid::make(2)
+                                                    ->schema([
+                                                        Components\TextEntry::make('effective_date')
+                                                            ->label('Effective Date')
+                                                            ->date('M j, Y'),
+                                                        Components\TextEntry::make('action_type')
+                                                            ->label('Action Type')
+                                                            ->badge()
+                                                            ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                                                            ->color(fn (string $state): string => match ($state) {
+                                                                'joining' => 'success',
+                                                                'increment' => 'info',
+                                                                'promotion' => 'warning',
+                                                                'bonus' => 'primary',
+                                                                default => 'gray',
+                                                            }),
+                                                    ]),
+                                                Components\Grid::make(2)
+                                                    ->schema([
+                                                        Components\TextEntry::make('new_salary')
+                                                            ->label('New Salary')
+                                                            ->money('PKR')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('previous_salary')
+                                                            ->label('Previous Salary')
+                                                            ->money('PKR')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('bonus_amount')
+                                                            ->label('Bonus Amount')
+                                                            ->money('PKR')
+                                                            ->default('Not specified'),
+                                                        Components\TextEntry::make('incentive_amount')
+                                                            ->label('Incentive Amount')
+                                                            ->money('PKR')
+                                                            ->default('Not specified'),
+                                                    ]),
+                                                Components\Grid::make(1)
+                                                    ->schema([
+                                                        Components\TextEntry::make('remarks')
+                                                            ->label('Remarks')
+                                                            ->default('No remarks')
+                                                            ->columnSpanFull(),
+                                                    ]),
                                             ])
-                                            ->columns(3),
+                                            ->columns(1),
                                     ]),
                             ]),
 
                         Components\Tabs\Tab::make('Performance')
                             ->schema([
-                                RepeatableEntry::make('performance_reviews')
-                                    ->label('Performance Reviews')
+                                Components\Section::make('Basic Information')
                                     ->relationship('performanceReviews')
                                     ->schema([
-                                        Section::make('Review Information')
-                                            ->schema([
-                                                Grid::make(2)->schema([
-                                                    TextEntry::make('employee.full_name')
-                                                        ->label('Employee')
-                                                        ->formatStateUsing(fn ($state, $record) =>
-                                                        "{$record->employee?->employee_id} — {$record->employee?->full_name}"
-                                                        )
-                                                        ->default('-'),
-
-                                                    TextEntry::make('review_period')
-                                                        ->label('Review Period')
-                                                        ->default('-'),
-
-                                                    TextEntry::make('review_date')
-                                                        ->label('Review Date')
-                                                        ->date(),
-
-                                                    TextEntry::make('reviewed_by')
-                                                        ->label('Reviewed By')
-                                                        ->default('Direct Manager'),
-
-                                                    TextEntry::make('status')
-                                                        ->label('Status')
-                                                        ->badge()
-                                                        ->colors([
-                                                            'warning' => 'draft',
-                                                            'info'    => 'submitted',
-                                                            'success' => 'approved',
-                                                        ]),
+                                        Components\Split::make([
+                                            Components\Grid::make(2)
+                                                ->schema([
+                                                    Components\Group::make([
+                                                        Components\TextEntry::make('employee.employee_id')
+                                                            ->label('Employee ID'),
+                                                        Components\TextEntry::make('employee.full_name')
+                                                            ->label('Employee Name'),
+                                                        Components\TextEntry::make('employee.email')
+                                                            ->label('Employee Email'),
+                                                        Components\TextEntry::make('employee.employmentHistory.current_department')
+                                                            ->label('Department'),
+                                                    ]),
+                                                    Components\Group::make([
+                                                        Components\TextEntry::make('review_period')
+                                                            ->label('Review Period')
+                                                            ->badge()
+                                                            ->color('primary'),
+                                                        Components\TextEntry::make('review_date')
+                                                            ->label('Review Date')
+                                                            ->date(),
+                                                        Components\TextEntry::make('reviewed_by')
+                                                            ->label('Reviewed By'),
+                                                        Components\TextEntry::make('status')
+                                                            ->label('Status')
+                                                            ->badge()
+                                                            ->color(fn(string $state): string => match ($state) {
+                                                                'draft' => 'gray',
+                                                                'submitted' => 'warning',
+                                                                'approved' => 'success',
+                                                                default => 'gray',
+                                                            }),
+                                                    ]),
                                                 ]),
-                                            ]),
-
-                                        Section::make('Performance Metrics')
+                                        ]),
+                                    ]),
+                                Components\Section::make('Manager Feedback')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('manager_feedback')
+                                            ->label('Manager Feedback')
+                                            ->prose()
+                                            ->placeholder('No manager feedback provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Peer Feedback')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('peer_feedback')
+                                            ->label('Peer Feedback')
+                                            ->prose()
+                                            ->placeholder('No peer feedback provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Self Assessment')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('self_assessment')
+                                            ->label('Self Assessment')
+                                            ->prose()
+                                            ->placeholder('No self assessment provided'),
+                                    ])->collapsed(),
+                                Components\Section::make('Areas of Strength')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('areas_of_strength')
+                                            ->label('Strengths')
+                                            ->prose()
+                                            ->placeholder('No strengths documented'),
+                                    ]),
+                                Components\Section::make('Areas for Improvement')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('areas_for_improvement')
+                                            ->label('Improvement Areas')
+                                            ->prose()
+                                            ->placeholder('No improvement areas documented'),
+                                    ]),
+                                Components\Section::make('Development Goals')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\TextEntry::make('development_goals')
+                                            ->label('Development Goals')
+                                            ->prose()
+                                            ->placeholder('No development goals set'),
+                                    ]),
+                                Components\Section::make('Performance Metrics')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\Grid::make(2)
                                             ->schema([
-                                                Grid::make(2)->schema([
-                                                    TextEntry::make('goal_completion_rate')
-                                                        ->label('Goal Completion Rate')
-                                                        ->formatStateUsing(fn ($val) =>
-                                                        is_numeric($val) ? "{$val}%" : ($val ?? '-')
-                                                        ),
-
-                                                    TextEntry::make('overall_rating')
-                                                        ->label('Overall Rating')
-                                                        ->badge()
-                                                        ->color(fn ($state) => match (true) {
-                                                            (float)$state >= 4.5 => 'success',
-                                                            (float)$state >= 4.0 => 'info',
-                                                            (float)$state >= 3.5 => 'gray',
-                                                            (float)$state >= 3.0 => 'warning',
-                                                            default               => 'danger',
-                                                        }),
-                                                ]),
+                                                Components\TextEntry::make('goal_completion_rate')
+                                                    ->label('Goal Completion Rate')
+                                                    ->suffix('%')
+                                                    ->numeric()
+                                                    ->color(fn($state): string => $state >= 80 ? 'success' : ($state >= 60 ? 'warning' : 'danger')),
+                                                Components\TextEntry::make('overall_rating')
+                                                    ->label('Overall Rating')
+                                                    ->suffix('/5.0')
+                                                    ->numeric()
+                                                    ->color(fn($state): string => $state >= 4.0 ? 'success' : ($state >= 3.0 ? 'warning' : 'danger')),
                                             ]),
-
-                                        Section::make('Detailed Feedback')
+                                    ])->columns(1),
+                                Components\Section::make('Record Information')
+                                    ->relationship('performanceReviews')
+                                    ->schema([
+                                        Components\Grid::make(2)
                                             ->schema([
-                                                TextEntry::make('self_assessment')->label('Employee Self Assessment')->markdown()->hidden(fn ($s) => blank($s)),
-                                                TextEntry::make('manager_feedback')->label('Manager Feedback')->markdown(),
-                                                TextEntry::make('peer_feedback')->label('Peer Feedback')->markdown()->hidden(fn ($s) => blank($s)),
-                                                TextEntry::make('areas_of_strength')->label('Areas of Strength')->markdown()->hidden(fn ($s) => blank($s)),
-                                                TextEntry::make('areas_for_improvement')->label('Areas for Improvement')->markdown()->hidden(fn ($s) => blank($s)),
-                                                TextEntry::make('development_goals')->label('Development Goals for Next Period')->markdown()->hidden(fn ($s) => blank($s)),
+                                                Components\TextEntry::make('created_at')
+                                                    ->label('Created At')
+                                                    ->dateTime(),
+                                                Components\TextEntry::make('updated_at')
+                                                    ->label('Last Updated')
+                                                    ->dateTime()
+                                                    ->since(),
                                             ]),
-
-                                        Section::make('Additional Information')
-                                            ->collapsed()
-                                            ->collapsible()
-                                            ->schema([
-                                                KeyValueEntry::make('key_achievements')
-                                                    ->label('Key Achievements')
-                                                    ->keyLabel('Achievement')
-                                                    ->valueLabel('Details')
-                                                    ->hidden(fn ($s) => empty($s)),
-
-                                                TextEntry::make('skills_demonstrated')
-                                                    ->label('Skills Demonstrated')
-                                                    ->badge()
-                                                    ->hidden(fn ($s) => empty($s)),
-
-                                                // Show uploaded files as links
-                                                RepeatableEntry::make('supporting_documents')
-                                                    ->label('Supporting Documents')
-                                                    ->hidden(fn ($s) => empty($s))
-                                                    ->schema([
-                                                        TextEntry::make('path')
-                                                            ->label('File')
-                                                            ->formatStateUsing(fn ($state) => is_array($state) ? ($state['path'] ?? ($state['name'] ?? '')) : $state)
-                                                            ->url(fn ($state) => Storage::url(is_array($state) ? ($state['path'] ?? ($state['name'] ?? null)) : $state), shouldOpenInNewTab: true)
-                                                            ->icon('heroicon-m-paper-clip'),
-                                                    ])
-                                                    ->formatStateUsing(function ($state) {
-                                                        if (blank($state)) return [];
-                                                        if (is_array($state) && array_is_list($state)) {
-                                                            return array_map(fn ($item) => ['path' => $item], $state);
-                                                        }
-                                                        if (is_string($state)) return [['path' => $state]];
-                                                        return [];
-                                                    }),
-                                            ]),
-                                    ])
-                                    ->emptyStateHeading('No performance reviews yet')
-                                    ->emptyStateDescription('Once reviews are added, they will appear here.')
-                                    ->emptyStateIcon('heroicon-o-clipboard-document-check'),
+                                    ]),
                             ]),
-                            ]),
+
 
                         Components\Tabs\Tab::make('Leave & Attendance')
                             ->schema([
@@ -415,9 +448,9 @@ class ViewEmployee extends ViewRecord
                                                     ->money('USD'),
                                                 Components\TextEntry::make('annual_checkup_used')
                                                     ->label('Annual Checkup')
-                                                    ->formatStateUsing(fn ($state) => $state ? 'Used' : 'Available')
+                                                    ->formatStateUsing(fn($state) => $state ? 'Used' : 'Available')
                                                     ->badge()
-                                                    ->color(fn ($state) => $state ? 'success' : 'warning'),
+                                                    ->color(fn($state) => $state ? 'success' : 'warning'),
                                             ])
                                             ->columns(3),
                                     ]),
@@ -441,7 +474,7 @@ class ViewEmployee extends ViewRecord
                                                 Components\TextEntry::make('status')
                                                     ->label('Status')
                                                     ->badge()
-                                                    ->color(fn ($state) => match ($state) {
+                                                    ->color(fn($state) => match ($state) {
                                                         'verified' => 'success',
                                                         'pending' => 'warning',
                                                         'rejected' => 'danger',
@@ -453,6 +486,7 @@ class ViewEmployee extends ViewRecord
                                             ->columns(3),
                                     ]),
                             ]),
+                    ]),
             ])->columns(1);
     }
 }
