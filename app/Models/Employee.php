@@ -145,6 +145,22 @@ class Employee extends Model
         });
     }
 
+    public static function generateEmployeeId()
+    {
+        $year = date('Y');
+        $lastEmployee = static::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastEmployee && preg_match('/EMP-' . $year . '-(\d+)/', $lastEmployee->employee_id, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return 'EMP-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
     // Computed Properties
     public function getCurrentAge(): int
     {
