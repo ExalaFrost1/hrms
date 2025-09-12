@@ -15,6 +15,7 @@ class CompensationHistory extends Model
         'previous_salary',
         'bonus_amount',
         'incentive_amount',
+        'adjustment_amount',
         'remarks',
         'approved_by'
     ];
@@ -24,7 +25,8 @@ class CompensationHistory extends Model
         'new_salary' => 'decimal:2',
         'previous_salary' => 'decimal:2',
         'bonus_amount' => 'decimal:2',
-        'incentive_amount' => 'decimal:2'
+        'incentive_amount' => 'decimal:2',
+        'adjustment_amount' => 'decimal:2'
     ];
 
     public function employee(): BelongsTo

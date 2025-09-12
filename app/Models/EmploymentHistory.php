@@ -32,8 +32,8 @@ protected $table = 'employment_history';
         'current_salary' => 'decimal:2',
     ];
 
-    public function employee(): HasOne
+    public function employee(): belongsTo
     {
-        return $this->hasOne(Employee::class);
+        return $this->belongsTo(Employee::class);
     }
 }

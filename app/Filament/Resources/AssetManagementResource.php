@@ -24,27 +24,79 @@ class AssetManagementResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('employee_id')
-                    ->relationship('employee', 'id')
-                    ->required(),
+                    ->relationship(
+                        'employee',
+                        'name',
+                        fn ($query) => $query->orderBy('name')
+                    )
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->id} - {$record->full_name}")
+                    ->searchable(['name', 'email', 'id']) // Make it searchable by name, email, and ID
+                    ->preload()
+                    ->required()
+                    ->placeholder('Select an employee'),
+
                 Forms\Components\TextInput::make('asset_type')
-                    ->required(),
+                    ->required()
+                    ->placeholder('e.g., laptop, desktop, phone, tablet, monitor'),
+
                 Forms\Components\TextInput::make('asset_name')
-                    ->required(),
-                Forms\Components\TextInput::make('model'),
+                    ->required()
+                    ->placeholder('e.g., MacBook Pro, Dell OptiPlex, iPhone 14'),
+
+                Forms\Components\TextInput::make('model')
+                    ->placeholder('e.g., MacBook Pro 16-inch, OptiPlex 7090, iPhone 14 Pro'),
+
                 Forms\Components\TextInput::make('serial_number')
-                    ->required(),
+                    ->required()
+                    ->placeholder('Enter unique serial number')
+                    ->unique(ignoreRecord: true),
+
                 Forms\Components\DatePicker::make('issued_date')
-                    ->required(),
-                Forms\Components\DatePicker::make('return_date'),
-                Forms\Components\TextInput::make('condition_when_issued')
-                    ->required(),
-                Forms\Components\TextInput::make('condition_when_returned'),
+                    ->required()
+                    ->placeholder('Select issue date'),
+
+                Forms\Components\DatePicker::make('return_date')
+                    ->placeholder('Select return date (if applicable)'),
+
+                Forms\Components\Select::make('condition_when_issued')
+                    ->required()
+                    ->options([
+                        'new' => 'New',
+                        'good' => 'Good',
+                        'fair' => 'Fair',
+                        'poor' => 'Poor',
+                    ])
+                    ->placeholder('Select condition when issued'),
+
+                Forms\Components\Select::make('condition_when_returned')
+                    ->options([
+                        'good' => 'Good',
+                        'fair' => 'Fair',
+                        'poor' => 'Poor',
+                        'damaged' => 'Damaged',
+                    ])
+                    ->placeholder('Select condition when returned (if applicable)'),
+
                 Forms\Components\TextInput::make('purchase_value')
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('PKR')
+                    ->placeholder('0.00')
+                    ->step(100),
+
                 Forms\Components\Textarea::make('notes')
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('status')
-                    ->required(),
+                    ->columnSpanFull()
+                    ->placeholder('Add any additional notes or comments about the asset'),
+
+                Forms\Components\Select::make('status')
+                    ->required()
+                    ->options([
+                        'issued' => 'Issued',
+                        'returned' => 'Returned',
+                        'damaged' => 'Damaged',
+                        'lost' => 'Lost',
+                    ])
+                    ->default('issued')
+                    ->placeholder('Select asset status'),
             ]);
     }
 
@@ -53,8 +105,14 @@ class AssetManagementResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('employee.id')
+                    ->label('Emp ID')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('employee.full_name')
+                    ->label('Employee Name')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('medium'),
                 Tables\Columns\TextColumn::make('asset_type')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('asset_name')
@@ -69,15 +127,28 @@ class AssetManagementResource extends Resource
                 Tables\Columns\TextColumn::make('return_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('condition_when_issued')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('condition_when_returned')
-                    ->searchable(),
+                Tables\Columns\BadgeColumn::make('condition_when_issued')
+                    ->colors([
+                        'success' => 'new',
+                        'primary' => 'good',
+                        'warning' => 'fair',
+                        'danger' => 'poor',
+                    ]),
+                Tables\Columns\BadgeColumn::make('condition_when_returned')
+                    ->colors([
+                        'primary' => 'good',
+                        'warning' => 'fair',
+                        'danger' => ['poor', 'damaged'],
+                    ]),
                 Tables\Columns\TextColumn::make('purchase_value')
-                    ->numeric()
+                    ->money('PKR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
+                Tables\Columns\BadgeColumn::make('status')
+                    ->colors([
+                        'success' => 'issued',
+                        'primary' => 'returned',
+                        'danger' => ['damaged', 'lost'],
+                    ]),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -88,7 +159,20 @@ class AssetManagementResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'issued' => 'Issued',
+                        'returned' => 'Returned',
+                        'damaged' => 'Damaged',
+                        'lost' => 'Lost',
+                    ]),
+                Tables\Filters\SelectFilter::make('condition_when_issued')
+                    ->options([
+                        'new' => 'New',
+                        'good' => 'Good',
+                        'fair' => 'Fair',
+                        'poor' => 'Poor',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -96,8 +180,48 @@ class AssetManagementResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
+                    Tables\Actions\BulkAction::make('bulk_mark_returned')
+                        ->label('Mark as Returned')
+                        ->icon('heroicon-o-arrow-left-circle')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\DatePicker::make('return_date')
+                                ->label('Return Date')
+                                ->default(now())
+                                ->required(),
+                            Forms\Components\Select::make('condition_when_returned')
+                                ->label('Condition When Returned')
+                                ->options([
+                                    'good' => 'Good',
+                                    'fair' => 'Fair',
+                                    'poor' => 'Poor',
+                                    'damaged' => 'Damaged',
+                                ])
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data): void {
+                            $records->each(function (AssetManagement $record) use ($data) {
+                                if ($record->status === 'issued') {
+                                    $record->update([
+                                        'return_date' => $data['return_date'],
+                                        'condition_when_returned' => $data['condition_when_returned'],
+                                        'status' => 'returned',
+                                    ]);
+                                }
+                            });
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    Tables\Actions\ExportBulkAction::make()
+                        ->label('Export Selected'),
                 ]),
-            ]);
+            ])
+            ->emptyStateHeading('No assets found')
+            ->emptyStateDescription('Get started by creating your first asset record.')
+            ->emptyStateIcon('heroicon-o-computer-desktop')
+            ->striped()
+            ->paginated([10, 25, 50, 100]);
     }
 
     public static function getRelations(): array

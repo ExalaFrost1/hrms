@@ -33,9 +33,9 @@ class PersonalInformation extends Model
         'date_of_birth' => 'date',
     ];
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class);
+        return $this->belongsTo(Employee::class);
     }
 
     // Auto-calculate age when date_of_birth is set

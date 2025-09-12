@@ -280,18 +280,14 @@ class EmployeeResource extends Resource
                                                 ->relationship('employee', 'full_name')
                                                 ->searchable()
                                                 ->preload()
-                                                ->required()
                                                 ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->employee_id} - {$record->full_name}"),
                                             Forms\Components\TextInput::make('review_period')
-                                                ->required()
                                                 ->placeholder('e.g., Q1 2024, Annual 2024')
                                                 ->helperText('Specify the review period (quarterly, annual, etc.)'),
                                             Forms\Components\DatePicker::make('review_date')
-                                                ->required()
                                                 ->default(now())
                                                 ->maxDate(now()),
                                             Forms\Components\TextInput::make('reviewed_by')
-                                                ->required()
                                                 ->default('Direct Manager')
                                                 ->placeholder('Name of the reviewer'),
                                             Forms\Components\Select::make('status')
@@ -301,7 +297,6 @@ class EmployeeResource extends Resource
                                                     'approved' => 'Approved',
                                                 ])
                                                 ->default('draft')
-                                                ->required(),
                                         ])->columns(2),
 
                                     Forms\Components\Section::make('Performance Metrics')
@@ -312,7 +307,6 @@ class EmployeeResource extends Resource
                                                 ->suffix('%')
                                                 ->minValue(0)
                                                 ->maxValue(100)
-                                                ->required()
                                                 ->helperText('Percentage of goals achieved during this period'),
                                             Forms\Components\Select::make('overall_rating')
                                                 ->label('Overall Rating')
@@ -325,7 +319,6 @@ class EmployeeResource extends Resource
                                                     '2.5' => '2.5 - Below Expectations',
                                                     '2.0' => '2.0 - Unsatisfactory',
                                                 ])
-                                                ->required()
                                                 ->helperText('Select the overall performance rating'),
                                         ])->columns(2),
 
@@ -341,8 +334,7 @@ class EmployeeResource extends Resource
                                                 ->label('Manager Feedback')
                                                 ->rows(4)
                                                 ->placeholder('Detailed manager evaluation and feedback')
-                                                ->helperText('Manager assessment of employee performance')
-                                                ->required(),
+                                                ->helperText('Manager assessment of employee performance'),
 
                                             Forms\Components\Textarea::make('peer_feedback')
                                                 ->label('Peer Feedback')

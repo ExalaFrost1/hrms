@@ -185,6 +185,10 @@ class ViewEmployee extends ViewRecord
                                                             ->label('Incentive Amount')
                                                             ->money('PKR')
                                                             ->default('Not specified'),
+                                                        Components\TextEntry::make('adjustment_amount')
+                                                            ->label('Adjustment Amount')
+                                                            ->money('PKR')
+                                                            ->default('Not specified'),
                                                     ]),
                                                 Components\Grid::make(1)
                                                     ->schema([
