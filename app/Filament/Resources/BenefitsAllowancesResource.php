@@ -17,6 +17,7 @@ class BenefitsAllowancesResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-gift';
 
+    protected static ?string $navigationGroup = 'Employee Management';
     protected static ?string $navigationLabel = 'Benefits & Allowances';
 
     protected static ?string $modelLabel = 'Benefits & Allowances';

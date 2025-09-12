@@ -18,6 +18,7 @@ class AssetManagementResource extends Resource
     protected static ?string $model = AssetManagement::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Employee Management';
 
     public static function form(Form $form): Form
     {

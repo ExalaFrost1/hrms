@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\EmployeeResource\Pages;
 
 use App\Filament\Resources\EmployeeResource;
+use Carbon\Carbon;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists\Infolist;
@@ -36,8 +37,7 @@ class ViewEmployee extends ViewRecord
                             ->schema([
                                 Components\Section::make('Basic Details')
                                     ->schema([
-                                        Components\Split::make([
-                                            Components\Grid::make(2)
+                                            Components\Grid::make()
                                                 ->schema([
                                                     Components\Group::make([
                                                         Components\TextEntry::make('employee_id')
@@ -57,8 +57,7 @@ class ViewEmployee extends ViewRecord
                                                             ->size(150),
                                                         Components\TextEntry::make('status')->badge(),
                                                     ]),
-                                                ]),
-                                        ]),
+                                                ])->columns(2),
                                     ]),
                                 Components\Section::make('Personal Details')
                                     ->schema([
@@ -66,12 +65,15 @@ class ViewEmployee extends ViewRecord
                                             ->label('Date of Birth')
                                             ->date(),
                                         Components\TextEntry::make('personalInfo.age')
-                                            ->label('Age'),
+                                            ->label('Age')
+                                        ->formatStateUsing(fn ($state) => abs(intval($state)) . ' Years'),
                                         Components\TextEntry::make('personalInfo.gender')
                                             ->label('Gender')
+                                            ->formatStateUsing(fn ($state) => ucfirst($state),)
                                             ->badge(),
                                         Components\TextEntry::make('personalInfo.marital_status')
                                             ->label('Marital Status')
+                                            ->formatStateUsing(fn ($state) => ucfirst($state),)
                                             ->badge(),
                                         Components\TextEntry::make('personalInfo.national_id')
                                             ->label('National ID'),
@@ -100,7 +102,7 @@ class ViewEmployee extends ViewRecord
                                         Components\TextEntry::make('personalInfo.emergency_contact_phone')
                                             ->label('Phone'),
                                     ])->columns(3),
-                            ]),
+                            ])->columns(3),
 
                         Components\Tabs\Tab::make('Employment')
                             ->schema([
@@ -114,6 +116,7 @@ class ViewEmployee extends ViewRecord
                                             ->date(),
                                         Components\TextEntry::make('employmentHistory.employment_type')
                                             ->label('Employment Type')
+                                            ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)),)
                                             ->badge(),
                                         Components\TextEntry::make('employmentHistory.current_department')
                                             ->label('Department'),
@@ -125,7 +128,7 @@ class ViewEmployee extends ViewRecord
                                             ->label('Current Manager'),
                                         Components\TextEntry::make('employmentHistory.current_salary')
                                             ->label('Current Salary')
-                                            ->money('USD'),
+                                            ->money('PKR'),
                                     ])->columns(2),
                                 Components\Section::make('Initial Employment')
                                     ->schema([
@@ -139,7 +142,7 @@ class ViewEmployee extends ViewRecord
                                             ->label('Initial Manager'),
                                         Components\TextEntry::make('employmentHistory.initial_salary')
                                             ->label('Initial Salary')
-                                            ->money('USD'),
+                                            ->money('PKR'),
                                     ])->columns(3),
                             ]),
 
@@ -232,6 +235,7 @@ class ViewEmployee extends ViewRecord
                                                             ->label('Reviewed By'),
                                                         Components\TextEntry::make('status')
                                                             ->label('Status')
+                                                            ->formatStateUsing(fn (string $state): string => ucfirst($state))
                                                             ->badge()
                                                             ->color(fn(string $state): string => match ($state) {
                                                                 'draft' => 'gray',
@@ -384,7 +388,7 @@ class ViewEmployee extends ViewRecord
                                                 Components\TextEntry::make('medical_allowance')
                                                     ->label('Medical Allowance')
                                                     ->getStateUsing(function ($record) {
-                                                        return '$' . ($record->benefitsAllowances()
+                                                        return 'PKR ' . ($record->benefitsAllowances()
                                                                 ->where('year', now()->year)
                                                                 ->first()?->medical_allowance ?? 0);
                                                     }),
@@ -395,8 +399,8 @@ class ViewEmployee extends ViewRecord
                                                             ->where('year', now()->year)
                                                             ->first();
                                                         return $benefit?->home_office_setup_claimed
-                                                            ? 'Claimed ($' . $benefit->home_office_setup . ')'
-                                                            : 'Available ($' . ($benefit?->home_office_setup ?? 1000) . ')';
+                                                            ? 'Claimed (PKR ' . $benefit->home_office_setup . ')'
+                                                            : 'Available (PKR ' . ($benefit?->home_office_setup ?? 1000) . ')';
                                                     })
                                                     ->badge()
                                                     ->color(function ($record) {

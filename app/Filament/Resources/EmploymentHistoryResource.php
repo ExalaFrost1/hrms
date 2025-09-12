@@ -17,6 +17,8 @@ class EmploymentHistoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
+    protected static ?string $navigationGroup = 'Employee Management';
+
     protected static ?string $navigationLabel = 'Employment History';
 
     protected static ?string $modelLabel = 'Employment Record';

@@ -24,6 +24,8 @@ class PerformanceReviewResource extends Resource
 
     protected static ?string $navigationLabel = 'Performance Reviews';
 
+    protected static ?string $navigationGroup = 'Employee Management';
+
     protected static ?string $modelLabel = 'Performance Review';
 
     protected static ?int $navigationSort = 3;

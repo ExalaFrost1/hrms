@@ -19,6 +19,7 @@ class CompensationHistoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
+    protected static ?string $navigationGroup = 'Employee Management';
     protected static ?string $navigationLabel = 'Compensation History';
 
     protected static ?string $modelLabel = 'Compensation Record';

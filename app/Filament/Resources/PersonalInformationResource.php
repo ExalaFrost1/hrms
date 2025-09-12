@@ -19,6 +19,8 @@ class PersonalInformationResource extends Resource
 
     protected static ?string $navigationLabel = 'Personal Information';
 
+    protected static ?string $navigationGroup = 'Employee Management';
+
     protected static ?string $modelLabel = 'Personal Information';
 
     protected static ?string $pluralModelLabel = 'Personal Information';
@@ -327,7 +329,7 @@ class PersonalInformationResource extends Resource
         return [
             'index' => Pages\ListPersonalInformation::route('/'),
             'create' => Pages\CreatePersonalInformation::route('/create'),
-            'view' => Pages\ViewPersonalInformation::route('/{record}'),
+//            'view' => Pages\ViewPersonalInformation::route('/{record}'),
             'edit' => Pages\EditPersonalInformation::route('/{record}/edit'),
         ];
     }
