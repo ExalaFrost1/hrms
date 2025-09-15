@@ -69,4 +69,5 @@ class EditEmployee extends EditRecord
     {
         return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
     }
+
 }

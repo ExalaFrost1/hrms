@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateEmploymentHistory extends CreateRecord
 {
     protected static string $resource = EmploymentHistoryResource::class;
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
 }
