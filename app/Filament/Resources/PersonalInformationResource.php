@@ -53,6 +53,8 @@ class PersonalInformationResource extends Resource
                             ->required()
                             ->maxDate(now()->subYears(16)) // Minimum working age
                             ->reactive()
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
                                     $set('age', now()->diffInYears($state));

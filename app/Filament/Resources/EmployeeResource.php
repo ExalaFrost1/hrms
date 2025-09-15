@@ -105,6 +105,7 @@ class EmployeeResource extends Resource
                                                     ->maxDate(now()->subYears(16))
                                                     ->minDate(now()->subYears(40))
                                                     ->native(false)
+                                                    ->displayFormat('d/m/Y')
                                                     ->live()
                                                     ->afterStateUpdated(function (Forms\Set $set, $state) {
                                                         if ($state) {
@@ -211,6 +212,7 @@ class EmployeeResource extends Resource
                                                     ->label('Joining Date')
                                                     ->required()
                                                     ->native(false)
+                                                    ->displayFormat('d/m/Y')
                                                     ->maxDate(now())
                                                     ->live()
                                                     ->afterStateUpdated(function (Forms\Set $set, $state) {
@@ -223,6 +225,7 @@ class EmployeeResource extends Resource
                                                 Forms\Components\DatePicker::make('probation_end_date')
                                                     ->label('Probation End Date')
                                                     ->native(false)
+                                                    ->displayFormat('d/m/Y')
                                                     ->after('joining_date')
                                                     ->helperText('Automatically set to 6 months after joining date'),
                                                 Forms\Components\Select::make('employment_type')
@@ -322,7 +325,8 @@ class EmployeeResource extends Resource
                                                                     ->required()
                                                                     ->default(now())
                                                                     ->maxDate(now())
-                                                                    ->native(false),
+                                                                    ->native(false)
+                                                                    ->displayFormat('d/m/Y'),
                                                                 Forms\Components\TextInput::make('reviewed_by')
                                                                     ->required()
                                                                     ->default('Direct Manager')
@@ -455,6 +459,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('effective_date')
                                                             ->label('Effective Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->maxDate(now()),
                                                         Forms\Components\Select::make('action_type')
@@ -630,11 +635,13 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('effective_from')
                                                             ->label('Effective From')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->default(now()->startOfYear()),
                                                         Forms\Components\DatePicker::make('effective_to')
                                                             ->label('Effective To')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->after('effective_from')
                                                             ->default(now()->endOfYear()),
                                                     ]),
@@ -721,12 +728,14 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('issued_date')
                                                             ->label('Issued Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->default(now())
                                                             ->maxDate(now()),
                                                         Forms\Components\DatePicker::make('return_date')
                                                             ->label('Return Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->after('issued_date')
                                                             ->hidden(fn (callable $get) => $get('status') === 'issued'),
                                                         Forms\Components\Select::make('status')
@@ -794,6 +803,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('policy_start_date')
                                                             ->label('Policy Start Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->live()
                                                             ->afterStateUpdated(function (Forms\Set $set, $state) {
@@ -806,6 +816,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('policy_end_date')
                                                             ->label('Policy End Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->after('policy_start_date')
                                                             ->helperText('Automatically set to one year after start date'),
@@ -866,6 +877,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('submission_date')
                                                             ->label('Submission Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->required()
                                                             ->default(now())
                                                             ->maxDate(now()),
@@ -889,6 +901,7 @@ class EmployeeResource extends Resource
                                                         Forms\Components\DatePicker::make('expiry_date')
                                                             ->label('Expiry Date')
                                                             ->native(false)
+                                                            ->displayFormat('d/m/Y')
                                                             ->after('submission_date')
                                                             ->helperText('If applicable (e.g., passport, license)'),
                                                     ]),
@@ -1013,10 +1026,12 @@ class EmployeeResource extends Resource
                     ->form([
                         Forms\Components\DatePicker::make('joined_from')
                             ->label('Joined From')
-                            ->native(false),
+                            ->native(false)
+                            ->displayFormat('d/m/Y'),
                         Forms\Components\DatePicker::make('joined_until')
                             ->label('Joined Until')
-                            ->native(false),
+                            ->native(false)
+                            ->displayFormat('d/m/Y'),
                     ])
                     ->query(function ($query, array $data) {
                         return $query

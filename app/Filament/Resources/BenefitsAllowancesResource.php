@@ -95,6 +95,8 @@ class BenefitsAllowancesResource extends Resource
                     ->schema([
                         Forms\Components\DatePicker::make('laptop_issued_date')
                             ->maxDate(now())
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->helperText('Date when laptop was issued to employee'),
                         Forms\Components\TextInput::make('laptop_model')
                             ->maxLength(255)

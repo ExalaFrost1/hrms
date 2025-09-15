@@ -69,6 +69,8 @@ class PerformanceReviewResource extends Resource
                                 Forms\Components\DatePicker::make('review_date')
                                     ->label('Review Date')
                                     ->required()
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
                                     ->default(now())
                                     ->maxDate(now()),
 
@@ -252,8 +254,12 @@ class PerformanceReviewResource extends Resource
                 Filter::make('review_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->label('From Date'),
                         Forms\Components\DatePicker::make('until')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->label('Until Date'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {

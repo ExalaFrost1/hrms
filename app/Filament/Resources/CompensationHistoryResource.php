@@ -49,6 +49,8 @@ class CompensationHistoryResource extends Resource
                     ->schema([
                         Forms\Components\DatePicker::make('effective_date')
                             ->required()
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->default(now())
                             ->maxDate(now()),
 
@@ -215,9 +217,13 @@ class CompensationHistoryResource extends Resource
                 Tables\Filters\Filter::make('effective_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')
-                            ->label('From Date'),
+                            ->label('From Date')
+                            ->native(false)
+                            ->displayFormat('d/m/Y'),
                         Forms\Components\DatePicker::make('until')
-                            ->label('Until Date'),
+                            ->label('Until Date')
+                            ->native(false)
+                            ->displayFormat('d/m/Y'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query

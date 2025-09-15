@@ -49,12 +49,16 @@ class EmploymentHistoryResource extends Resource
                 Forms\Components\Section::make('Employment Dates')
                     ->schema([
                         Forms\Components\DatePicker::make('joining_date')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->required()
                             ->label('Joining Date')
                             ->default(now())
                             ->maxDate(now()),
                         Forms\Components\DatePicker::make('probation_end_date')
                             ->required()
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
                             ->label('Probation End Date')
                             ->after('joining_date'),
                     ])

@@ -54,10 +54,14 @@ class AssetManagementResource extends Resource
 
                 Forms\Components\DatePicker::make('issued_date')
                     ->required()
-                    ->placeholder('Select issue date'),
+                    ->placeholder('Select issue date')
+                    ->native(false)
+                    ->displayFormat('d/m/Y'),
 
                 Forms\Components\DatePicker::make('return_date')
-                    ->placeholder('Select return date (if applicable)'),
+                    ->placeholder('Select return date (if applicable)')
+                    ->native(false)
+                    ->displayFormat('d/m/Y'),
 
                 Forms\Components\Select::make('condition_when_issued')
                     ->required()
@@ -190,7 +194,9 @@ class AssetManagementResource extends Resource
                             Forms\Components\DatePicker::make('return_date')
                                 ->label('Return Date')
                                 ->default(now())
-                                ->required(),
+                                ->required()
+                                ->native(false)
+                                ->displayFormat('d/m/Y'),
                             Forms\Components\Select::make('condition_when_returned')
                                 ->label('Condition When Returned')
                                 ->options([
