@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PerformanceReviewResource\Pages;
 use App\Models\PerformanceReview;
-use App\Models\User;
+use App\Models\Employee;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +15,8 @@ use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Enums\FiltersLayout;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Support\Facades\Storage;
 
 class PerformanceReviewResource extends Resource
 {
@@ -39,23 +41,39 @@ class PerformanceReviewResource extends Resource
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\Select::make('employee_id')
-                                    ->relationship(
-                                        'employee',
-                                        'name',
-                                        fn ($query) => $query->orderBy('name')
-                                    )
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->id} - {$record->full_name}")
-                                    ->searchable(['name', 'email', 'id']) // Make it searchable by name, email, and ID
+                                    ->relationship('employee', 'full_name')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->employee_id} - {$record->full_name}")
+                                    ->searchable(['full_name', 'email', 'employee_id'])
                                     ->preload()
                                     ->required()
                                     ->columnSpanFull()
-                                    ->helperText('Select the employee being reviewed'),
+                                    ->helperText('Select the employee being reviewed')
+                                    ->rules([
+                                        'required',
+                                        'exists:employees,id',
+                                        function ($attribute, $value, $fail) {
+                                            $employee = Employee::find($value);
+                                            if ($employee && $employee->status !== 'active') {
+                                                $fail('Cannot create performance review for inactive employees.');
+                                            }
+                                        },
+                                    ]),
 
                                 Forms\Components\TextInput::make('reviewed_by')
                                     ->label('Reviewed By')
                                     ->required()
                                     ->placeholder('Enter reviewer name')
-                                    ->helperText('Manager or supervisor conducting the review'),
+                                    ->helperText('Manager or supervisor conducting the review')
+                                    ->maxLength(255)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'max:255',
+                                        'regex:/^[a-zA-Z\s\-\.]+$/'
+                                    ])
+                                    ->validationMessages([
+                                        'regex' => 'Reviewer name must only contain letters, spaces, hyphens, and periods.',
+                                    ]),
                             ]),
 
                         Forms\Components\Grid::make(3)
@@ -64,7 +82,20 @@ class PerformanceReviewResource extends Resource
                                     ->label('Review Period')
                                     ->required()
                                     ->placeholder('e.g., Q1 2024, Annual 2024')
-                                    ->helperText('The period this review covers'),
+                                    ->helperText('The period this review covers')
+                                    ->maxLength(100)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'max:100',
+                                        'regex:/^[a-zA-Z0-9\s\-]+$/'
+                                    ])
+                                    ->validationMessages([
+                                        'regex' => 'Review period must only contain letters, numbers, spaces, and hyphens.',
+                                    ])
+                                    ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule, $get) {
+                                        return $rule->where('employee_id', $get('employee_id'));
+                                    }),
 
                                 Forms\Components\DatePicker::make('review_date')
                                     ->label('Review Date')
@@ -72,7 +103,15 @@ class PerformanceReviewResource extends Resource
                                     ->native(false)
                                     ->displayFormat('d/m/Y')
                                     ->default(now())
-                                    ->maxDate(now()),
+                                    ->maxDate(now())
+                                    ->rules([
+                                        'required',
+                                        'date',
+                                        'before_or_equal:today'
+                                    ])
+                                    ->validationMessages([
+                                        'before_or_equal' => 'Review date cannot be in the future.',
+                                    ]),
 
                                 Forms\Components\Select::make('status')
                                     ->label('Status')
@@ -80,9 +119,11 @@ class PerformanceReviewResource extends Resource
                                         'draft' => 'Draft',
                                         'submitted' => 'Submitted',
                                         'approved' => 'Approved',
+                                        'completed' => 'Completed',
                                     ])
                                     ->default('draft')
-                                    ->required(),
+                                    ->required()
+                                    ->rules(['required', 'in:draft,submitted,approved,completed']),
                             ]),
                     ]),
 
@@ -97,7 +138,17 @@ class PerformanceReviewResource extends Resource
                                     ->minValue(0)
                                     ->maxValue(100)
                                     ->step(0.01)
-                                    ->helperText('Percentage of goals completed'),
+                                    ->helperText('Percentage of goals completed')
+                                    ->rules([
+                                        'nullable',
+                                        'numeric',
+                                        'min:0',
+                                        'max:100'
+                                    ])
+                                    ->validationMessages([
+                                        'min' => 'Goal completion rate cannot be negative.',
+                                        'max' => 'Goal completion rate cannot exceed 100%.',
+                                    ]),
 
                                 Forms\Components\TextInput::make('overall_rating')
                                     ->label('Overall Rating')
@@ -105,7 +156,17 @@ class PerformanceReviewResource extends Resource
                                     ->minValue(1)
                                     ->maxValue(5)
                                     ->step(0.1)
-                                    ->helperText('Rating from 1.0 to 5.0'),
+                                    ->helperText('Rating from 1.0 to 5.0')
+                                    ->rules([
+                                        'nullable',
+                                        'numeric',
+                                        'min:1.0',
+                                        'max:5.0'
+                                    ])
+                                    ->validationMessages([
+                                        'min' => 'Overall rating must be at least 1.0.',
+                                        'max' => 'Overall rating cannot exceed 5.0.',
+                                    ]),
                             ]),
                     ]),
 
@@ -114,17 +175,38 @@ class PerformanceReviewResource extends Resource
                         Forms\Components\Textarea::make('manager_feedback')
                             ->label('Manager Feedback')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(2000)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:2000'
+                            ])
+                            ->helperText('Maximum 2000 characters'),
 
                         Forms\Components\Textarea::make('peer_feedback')
                             ->label('Peer Feedback')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(2000)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:2000'
+                            ])
+                            ->helperText('Maximum 2000 characters'),
 
                         Forms\Components\Textarea::make('self_assessment')
                             ->label('Self Assessment')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(2000)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:2000'
+                            ])
+                            ->helperText('Maximum 2000 characters'),
                     ]),
 
                 Forms\Components\Section::make('Development Areas')
@@ -132,18 +214,104 @@ class PerformanceReviewResource extends Resource
                         Forms\Components\Textarea::make('areas_of_strength')
                             ->label('Areas of Strength')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(1000)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:1000'
+                            ])
+                            ->helperText('Maximum 1000 characters'),
 
                         Forms\Components\Textarea::make('areas_for_improvement')
                             ->label('Areas for Improvement')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(1000)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:1000'
+                            ])
+                            ->helperText('Maximum 1000 characters'),
 
                         Forms\Components\Textarea::make('development_goals')
                             ->label('Development Goals')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->maxLength(1500)
+                            ->columnSpanFull()
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:1500'
+                            ])
+                            ->helperText('Maximum 1500 characters'),
                     ]),
+
+                Forms\Components\Section::make('Additional Information')
+                    ->schema([
+                        Forms\Components\KeyValue::make('key_achievements')
+                            ->label('Key Achievements')
+                            ->keyLabel('Achievement')
+                            ->valueLabel('Details')
+                            ->addActionLabel('Add Achievement')
+                            ->rules([
+                                'nullable',
+                                'array',
+                                'max:10'
+                            ])
+                            ->validationMessages([
+                                'max' => 'You can add a maximum of 10 key achievements.',
+                            ]),
+
+                        Forms\Components\TagsInput::make('skills_demonstrated')
+                            ->label('Skills Demonstrated')
+                            ->placeholder('Enter skills and press Enter')
+                            ->rules([
+                                'nullable',
+                                'array',
+                                'max:15'
+                            ])
+                            ->validationMessages([
+                                'max' => 'You can add a maximum of 15 skills.',
+                            ]),
+
+                        Forms\Components\FileUpload::make('supporting_documents')
+                            ->label('Supporting Documents')
+                            ->multiple()
+                            ->directory('performance-reviews')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                            ->maxSize(5120) // 5MB
+                            ->maxFiles(5)
+                            ->helperText('Upload supporting documents (PDF, images, Word docs only, max 5MB each, maximum 5 files)')
+                            ->uploadingMessage('Uploading documents...')
+                            ->removeUploadedFileButtonPosition('right')
+                            ->uploadProgressIndicatorPosition('left')
+                            ->rules([
+                                'nullable',
+                                'array',
+                                'max:5'
+                            ])
+                            ->validationMessages([
+                                'max' => 'You can upload a maximum of 5 files.',
+                            ])
+                            ->deleteUploadedFileUsing(function ($file) {
+                                try {
+                                    if (Storage::disk('public')->exists($file)) {
+                                        return Storage::disk('public')->delete($file);
+                                    }
+                                } catch (\Exception $e) {
+                                    \Log::error('Failed to delete uploaded file: ' . $e->getMessage());
+                                    return false;
+                                }
+                                return false;
+                            })
+                            ->getUploadedFileNameForStorageUsing(function ($file) {
+                                return 'performance-review-' . time() . '-' . $file->getClientOriginalName();
+                            }),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -151,7 +319,7 @@ class PerformanceReviewResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('employee.id')
+                Tables\Columns\TextColumn::make('employee.employee_id')
                     ->label('Emp ID')
                     ->searchable()
                     ->sortable(),
@@ -198,6 +366,7 @@ class PerformanceReviewResource extends Resource
                         'draft' => 'gray',
                         'submitted' => 'warning',
                         'approved' => 'success',
+                        'completed' => 'info',
                     }),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -218,12 +387,13 @@ class PerformanceReviewResource extends Resource
                         'draft' => 'Draft',
                         'submitted' => 'Submitted',
                         'approved' => 'Approved',
+                        'completed' => 'Completed',
                     ])
                     ->multiple(),
 
                 SelectFilter::make('employee_id')
                     ->label('Employee')
-                    ->relationship('employee', 'id')
+                    ->relationship('employee', 'employee_id')
                     ->searchable()
                     ->preload(),
 

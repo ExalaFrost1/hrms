@@ -90,7 +90,7 @@ class EmploymentHistoryResource extends Resource
                             ->required()
                             ->numeric()
                             ->label('Initial Salary')
-                            ->prefix('$')
+                            ->prefix('PKR')
                             ->minValue(0)
                             ->step(0.01),
                     ])
@@ -119,7 +119,7 @@ class EmploymentHistoryResource extends Resource
                             ->required()
                             ->numeric()
                             ->label('Current Salary')
-                            ->prefix('$')
+                            ->prefix('PKR')
                             ->minValue(0)
                             ->step(0.01),
                     ])
@@ -192,7 +192,7 @@ class EmploymentHistoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('current_salary')
                     ->label('Salary')
-                    ->money('USD')
+                    ->money('PKR')
                     ->sortable()
                     ->toggleable(),
 
@@ -266,7 +266,7 @@ class EmploymentHistoryResource extends Resource
                         ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('employee_id')
             ->striped()
             ->paginated([10, 25, 50, 100]);
     }

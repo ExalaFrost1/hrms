@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Collection; // Add this import
 
 class AssetManagementResource extends Resource
 {
@@ -31,7 +32,7 @@ class AssetManagementResource extends Resource
                         fn ($query) => $query->orderBy('name')
                     )
                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->id} - {$record->full_name}")
-                    ->searchable(['name', 'email', 'id']) // Make it searchable by name, email, and ID
+                    ->searchable(['name', 'email', 'id'])
                     ->preload()
                     ->required()
                     ->placeholder('Select an employee'),
@@ -86,7 +87,7 @@ class AssetManagementResource extends Resource
                     ->numeric()
                     ->prefix('PKR')
                     ->placeholder('0.00')
-                    ->step(100),
+                    ->step(0.01), // Changed from 100 to 0.01 to match decimal(10,2)
 
                 Forms\Components\Textarea::make('notes')
                     ->columnSpanFull()
@@ -228,7 +229,8 @@ class AssetManagementResource extends Resource
             ->emptyStateDescription('Get started by creating your first asset record.')
             ->emptyStateIcon('heroicon-o-computer-desktop')
             ->striped()
-            ->paginated([10, 25, 50, 100]);
+            ->paginated([10, 25, 50, 100])
+            ->defaultSort('employee_id');
     }
 
     public static function getRelations(): array

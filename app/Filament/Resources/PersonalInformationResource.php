@@ -70,8 +70,7 @@ class PersonalInformationResource extends Resource
                         Forms\Components\Select::make('gender')
                             ->options([
                                 'male' => 'Male',
-                                'female' => 'Female',
-                                'other' => 'Other',
+                                'female' => 'Female'
                             ])
                             ->required()
                             ->native(false),
@@ -245,8 +244,7 @@ class PersonalInformationResource extends Resource
                 Tables\Filters\SelectFilter::make('gender')
                     ->options([
                         'male' => 'Male',
-                        'female' => 'Female',
-                        'other' => 'Other',
+                        'female' => 'Female'
                     ]),
 
                 Tables\Filters\SelectFilter::make('marital_status')

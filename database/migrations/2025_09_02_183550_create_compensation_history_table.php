@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('previous_salary', 12, 2)->nullable();
             $table->decimal('bonus_amount', 12, 2)->nullable();
             $table->decimal('incentive_amount', 12, 2)->nullable();
+            $table->decimal('adjustment_amount', 12, 2)->nullable();
             $table->text('remarks')->nullable();
             $table->string('approved_by')->nullable();
             $table->timestamps();

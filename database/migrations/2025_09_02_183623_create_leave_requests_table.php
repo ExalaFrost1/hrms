@@ -14,17 +14,29 @@ return new class extends Migration
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable();
-            $table->enum('leave_type', ['annual', 'sick', 'casual', 'unpaid', 'maternity', 'paternity', 'bereavement', 'study'])->nullable();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->integer('days_requested')->nullable();
-            $table->text('reason')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->nullable();
-            $table->string('approved_by')->nullable();
+            $table->string('request_id')->unique()->index();
+            $table->string('employee_name'); // Discord username
+            $table->string('full_name');
+            $table->string('email');
+            $table->string('department');
+            $table->enum('leave_type', ['Full Day', 'Half Day', 'Emergency']);
+            $table->enum('half_day_period', ['First Half', 'Second Half'])->nullable();
+            $table->text('reason');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->text('description')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('approver_username')->nullable();
+            $table->string('thread_id')->nullable(); // Discord thread ID
             $table->text('rejection_reason')->nullable();
-            $table->date('approved_at')->nullable();
-            $table->json('documents')->nullable();
+            $table->string('attachment_filename')->nullable();
+            $table->string('attachment_path')->nullable();
+            $table->decimal('calculated_days', 5, 2)->default(0); // Calculated leave days
+            $table->string('leave_category')->default('annual'); // annual, sick, bereavement
             $table->timestamps();
+
+            $table->index(['employee_name', 'status']);
+            $table->index(['start_date', 'end_date']);
         });
     }
 
