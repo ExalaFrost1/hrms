@@ -36,11 +36,11 @@ class PersonalInformationResource extends Resource
                         Forms\Components\Select::make('employee_id')
                             ->relationship(
                                 'employee',
-                                'name',
-                                fn ($query) => $query->orderBy('name')
+                                'full_name',
+                                fn ($query) => $query->orderBy('full_name')
                             )
                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->id} - {$record->full_name}")
-                            ->searchable(['name', 'email', 'id'])
+                            ->searchable(['full_name', 'email', 'id'])
                             ->preload()
                             ->required()
                             ->placeholder('Select an employee')
