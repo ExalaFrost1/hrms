@@ -22,6 +22,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive', 'on_leave', 'terminated'])->default('active');
             $table->string('profile_photo')->nullable();
             $table->timestamps();
+            $table->rememberToken();
             $table->softDeletes();
         });
     }

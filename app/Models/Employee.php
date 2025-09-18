@@ -2,6 +2,8 @@
 // app/Models/Employee.php
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,8 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Employee extends Model
+class Employee extends Authenticatable implements FilamentUser
 {
     use HasFactory, SoftDeletes, HasRoles, LogsActivity;
 
@@ -425,5 +428,10 @@ class Employee extends Model
             ->count();
 
         return ($successful / $totalCompleted) * 100;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return str_ends_with($this->email, '@confinality.com');
     }
 }

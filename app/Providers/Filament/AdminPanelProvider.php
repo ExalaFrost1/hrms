@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->profile()
             ->login(Login::class)
             ->brandLogo('/storage/images/logo_1.png')
             ->brandLogoHeight('3.5rem')
