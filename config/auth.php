@@ -59,22 +59,17 @@ return [
     |
     */
 
-    'providers' => array(
-        'users' => array(
+    'providers' => [
+        'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
-        ),
-
-        'employees' => array(
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\Employee::class),
-        ),
+        ],
 
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
-    ),
+    ],
 
     /*
     |--------------------------------------------------------------------------
