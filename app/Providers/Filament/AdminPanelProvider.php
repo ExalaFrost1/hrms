@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(Login::class)
             ->brandLogo('/storage/images/logo_1.png')
-            ->brandLogoHeight('8rem')
+            ->brandLogoHeight('5rem')
             ->topNavigation()
             ->maxContentWidth("full")
             ->colors([
